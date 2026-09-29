@@ -2350,6 +2350,27 @@ Panel {
 
               Text {
                 Layout.fillWidth: true
+                text: "Aggregated network traffic bar"
+                color: root.foreground
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.body
+                elide: Text.ElideRight
+              }
+
+              ToggleSwitch {
+                checked: root.setting("aggregateNet", false) === true
+                foreground: root.foreground
+                accent: Color.accent
+                onToggled: root.persistPluginSetting("aggregateNet", root.setting("aggregateNet", false) === true ? false : true)
+              }
+            }
+
+            RowLayout {
+              width: parent.width
+              spacing: Style.space(8)
+
+              Text {
+                Layout.fillWidth: true
                 text: "Refresh interval"
                 color: root.foreground
                 font.family: root.fontFamily

@@ -1707,7 +1707,9 @@ function metricValue(key, data, pad) {
     case "vram": return data.gpu && !data.gpu.asleep && gpuMemTotal(data.gpu) > 0 ? p3(fmtPct(100 * gpuMemUsed(data.gpu) / gpuMemTotal(data.gpu))) : ""
     case "disk": return data.disk ? p3(fmtPct(100 * data.disk.used / data.disk.size)) : ""
     case "io": return data.io ? "R" + p4(fmtRateShort(data.io.read)) + " W" + p4(fmtRateShort(data.io.write)) : ""
-    case "net": return ICON_DOWN + ICON_GAP + p4r(fmtRateShort(data.netDown)) + " " + ICON_UP + ICON_GAP + p4r(fmtRateShort(data.netUp))
+    case "net": return settings.aggregateNet
+      ? "\u{2b0d}" + ICON_GAP + p4r(fmtRateShort(data.netDown + data.netUp))
+      : ICON_DOWN + ICON_GAP + p4r(fmtRateShort(data.netDown)) + " " + ICON_UP + ICON_GAP + p4r(fmtRateShort(data.netUp))
     case "load": return data.load1.toFixed(2)
     case "bat": return data.battery && isFinite(data.battery.pct)
       ? batteryIcon(data.battery.pct, data.battery.charging) + " " + p3(fmtPct(data.battery.pct))
