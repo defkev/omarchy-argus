@@ -2050,7 +2050,7 @@ function barLines(showKeys, data, th) {
     if (metric.icon !== "") lines.push({ text: metric.icon, urgent: urgent })
     lines.push({ text: value, urgent: urgent })
   }
-  return lines.length > 0 ? lines : [{ text: PLACEHOLDER_ICON, urgent: false }]
+  return lines
 }
 
 if (typeof module !== "undefined") {
