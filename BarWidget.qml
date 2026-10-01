@@ -71,9 +71,7 @@ Panel {
 
   readonly property string segmentGap: "  "
 
-  readonly property var verticalLines: Service.ready
-    ? Model.barLines(shownKeys, Service.barData, thresholds)
-    : [{ text: Model.PLACEHOLDER_ICON, urgent: false }]
+  readonly property var verticalLines: Model.barLines(shownKeys, Service.barData, thresholds)
 
   // Row models must not rebuild their delegates every tick, so they hang
   // off these stable booleans instead of the per-tick Service arrays —
@@ -451,8 +449,8 @@ Panel {
     return rows
   }
 
-  implicitWidth: button.implicitWidth
-  implicitHeight: button.implicitHeight
+  implicitWidth: segmentFlow.implicitWidth
+  implicitHeight: segmentFlow.implicitHeight
 
   onOpenedChanged: {
     if (opened) {
@@ -539,113 +537,104 @@ Panel {
     }
   }
 
-  WidgetButton {
-    id: button
-    anchors.fill: parent
-    bar: root.bar
-    text: root.bar && root.bar.vertical ? "" : root.displayText
-    // The label handles the common case; segmentRow takes over only when a
-    // threshold is crossed and one segment must differ in colour from the rest.
-    labelVisible: !(root.bar && root.bar.vertical) && !root.placeholderOnly && !root.anyUrgent
-    hasVisualContent: root.bar && root.bar.vertical ? root.verticalLines.length > 0 : text !== ""
-    fixedWidth: !(root.bar && root.bar.vertical) && root.placeholderOnly ? Style.bar.iconSlot : -1
-    fixedHeight: root.bar && root.bar.vertical ? root.verticalLines.length * Style.bar.iconSlot : -1
-    tooltipText: Service.ready
-      ? Service.host + " · up " + Model.fmtUptime(Service.uptimeSec) + " · load " + Service.load1.toFixed(2)
-        + (Service.battery ? " · bat " + Model.fmtPct(Service.battery.pct) + " " + Service.battery.status.toLowerCase() : "")
-      : "Argus"
+  Flow {
+    id: segmentFlow
+    flow: root.bar.vertical ? Flow.TopToBottom : Flow.LeftToRight
+    spacing: -2 // ToDo: Reduce spacing for lots of items
 
-    onPressed: function(b) {
-      if (b === Qt.RightButton) { if (root.bar) root.bar.run("omarchy-launch-or-focus-tui btop") }
-      else if (b === Qt.MiddleButton) root.refreshNow()
-      else root.toggle()
-    }
+    WidgetButton {
+      id: placeholderButton
+      bar: root.bar
+      hasVisualContent: root.placeholderOnly
+      tooltipText: Service.ready
+        ? Service.host + " · up " + Model.fmtUptime(Service.uptimeSec) + " · load " + Service.load1.toFixed(2)
+          + (Service.battery ? " · bat " + Model.fmtPct(Service.battery.pct) + " " + Service.battery.status.toLowerCase() : "")
+        : "Argus"
 
-    // A bare Nerd Font glyph has asymmetric side bearings, so the plain text
-    // label would paint it visibly off-center; when only the placeholder icon
-    // shows, render through OpticalGlyph the way BarIconButton does.
-    OpticalGlyph {
-      id: placeholderEye
-      visible: !(root.bar && root.bar.vertical) && root.placeholderOnly
-      anchors.centerIn: parent
-      width: Style.bar.iconCanvas
-      height: Style.bar.iconCanvas
-      text: Model.PLACEHOLDER_ICON
-      fontFamily: button.fontFamily
-      fontSize: Style.bar.iconFont
-      color: button.foreground
-
-      // Even the ever-watchful eye blinks now and then.
-      property real blinkY: 1
-      transform: Scale {
-        origin.y: placeholderEye.height / 2
-        yScale: placeholderEye.blinkY
+      onPressed: (b) => {
+        if (b === Qt.RightButton) { if (root.bar) root.bar.run("omarchy-launch-or-focus-tui btop") }
+        else if (b === Qt.MiddleButton) root.refreshNow()
+        else root.toggle()
       }
 
-      Timer {
-        running: placeholderEye.visible
-        repeat: true
-        interval: 6000
-        onTriggered: {
-          blinkAnim.restart()
-          interval = 5000 + Math.round(Math.random() * 9000)
+      // A bare Nerd Font glyph has asymmetric side bearings, so the plain text
+      // label would paint it visibly off-center; when only the placeholder icon
+      // shows, render through OpticalGlyph the way BarIconButton does.
+      OpticalGlyph {
+        id: placeholderEye
+        anchors.centerIn: parent
+        width: Style.bar.iconCanvas
+        height: Style.bar.iconCanvas
+        text: Model.PLACEHOLDER_ICON
+        fontFamily: placeholderButton.fontFamily
+        fontSize: Style.bar.iconFont
+        color: placeholderButton.foreground
+
+        // Even the ever-watchful eye blinks now and then.
+        property real blinkY: 1
+        transform: Scale {
+          origin.y: placeholderEye.height / 2
+          yScale: placeholderEye.blinkY
         }
-      }
 
-      SequentialAnimation {
-        id: blinkAnim
-        NumberAnimation { target: placeholderEye; property: "blinkY"; to: 0.08; duration: 70 }
-        NumberAnimation { target: placeholderEye; property: "blinkY"; to: 1; duration: 110 }
-      }
-    }
+        Timer {
+          running: placeholderEye.visible
+          repeat: true
+          interval: 6000
+          onTriggered: {
+            blinkAnim.restart()
+            interval = 5000 + Math.round(Math.random() * 9000)
+          }
+        }
 
-    // Measured rather than guessed: the gap has to match what the label would
-    // have painted for segmentGap, or the widget changes width the moment a
-    // threshold is crossed.
-    TextMetrics {
-      id: gapMetrics
-      font.family: button.fontFamily
-      font.pixelSize: button.fontSize
-      text: root.segmentGap
-    }
-
-    Row {
-      id: segmentRow
-      visible: !(root.bar && root.bar.vertical) && !root.placeholderOnly && root.anyUrgent
-      anchors.centerIn: parent
-      spacing: gapMetrics.width
-
-      Repeater {
-        model: root.barSegs
-
-        Text {
-          required property var modelData
-          textFormat: Text.PlainText
-          text: modelData.text
-          color: modelData.urgent ? root.urgent : button.foreground
-          font.family: button.fontFamily
-          font.pixelSize: button.fontSize
-          renderType: Text.NativeRendering
-          verticalAlignment: Text.AlignVCenter
+        SequentialAnimation {
+          id: blinkAnim
+          NumberAnimation { target: placeholderEye; property: "blinkY"; to: 0.08; duration: 70 }
+          NumberAnimation { target: placeholderEye; property: "blinkY"; to: 1; duration: 110 }
         }
       }
     }
 
-    Column {
-      visible: root.bar && root.bar.vertical
-      anchors.fill: parent
+    Repeater {
+      model: root.bar.vertical ? root.verticalLines : root.barSegs
 
-      Repeater {
-        model: root.verticalLines
-
-        OpticalGlyph {
-          required property var modelData
-          width: button.width
-          height: Style.bar.iconSlot
-          text: modelData.text
-          fontFamily: button.fontFamily
-          fontSize: modelData.text.length > 3 ? button.fontSize * 0.85 : button.fontSize
-          color: modelData.urgent ? root.urgent : button.foreground
+      WidgetButton {
+        required property var modelData
+        bar: root.bar
+        text: modelData.text
+        active: modelData.urgent
+        tooltipText: placeholderButton.tooltipText // ToDo: Display something meaningful per-item
+        onPressed: (b) => {
+          switch(modelData.key) {
+            case "cpu":
+            case "cputemp":
+              Service.lastTab = "CPU"
+              break
+            case "ram":
+              Service.lastTab = "MEM"
+              break
+            case "gpu":
+            case "gputemp":
+            case "vram":
+              Service.lastTab = "GPU"
+              break
+            case "disk":
+            case "io":
+              Service.lastTab = "DISK"
+              break
+            case "net":
+              Service.lastTab = "NET"
+              break
+            case "load":
+              Service.lastTab = "PROC"
+              break
+            case "bat":
+              Service.lastTab = "BAT"
+              break
+            default:
+              Service.lastTab = "HOME"
+          }
+          placeholderButton.pressed(b)
         }
       }
     }
@@ -653,7 +642,7 @@ Panel {
 
   KeyboardPanel {
     id: panel
-    anchorItem: button
+    anchorItem: segmentFlow
     owner: root
     bar: root.bar
     open: root.opened
