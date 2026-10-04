@@ -55,22 +55,6 @@ Panel {
     return false
   }
 
-  // Always plain, never markup. WidgetButton's label is Text.PlainText, so a
-  // <font> tag renders as the literal characters "<font color=...>" in the bar
-  // rather than colouring anything. Per-segment colour is painted by segmentRow
-  // below instead — the same approach the vertical bar already takes.
-  //
-  // This string stays the button's `text` even while segmentRow is what shows,
-  // because WidgetButton derives implicitWidth and hasVisualContent from it.
-  readonly property string displayText: {
-    if (placeholderOnly) return Model.PLACEHOLDER_ICON
-    var parts = []
-    for (var i = 0; i < barSegs.length; i++) parts.push(barSegs[i].text)
-    return parts.join(segmentGap)
-  }
-
-  readonly property string segmentGap: "  "
-
   readonly property var verticalLines: Model.barLines(shownKeys, Service.barData, thresholds)
 
   // Row models must not rebuild their delegates every tick, so they hang
@@ -540,72 +524,27 @@ Panel {
   Flow {
     id: segmentFlow
     flow: root.bar.vertical ? Flow.TopToBottom : Flow.LeftToRight
-    spacing: -2 // ToDo: Reduce spacing for lots of items
-
-    WidgetButton {
-      id: placeholderButton
-      bar: root.bar
-      hasVisualContent: root.placeholderOnly
-      tooltipText: Service.ready
-        ? Service.host + " · up " + Model.fmtUptime(Service.uptimeSec) + " · load " + Service.load1.toFixed(2)
-          + (Service.battery ? " · bat " + Model.fmtPct(Service.battery.pct) + " " + Service.battery.status.toLowerCase() : "")
-        : "Argus"
-
-      onPressed: (b) => {
-        if (b === Qt.RightButton) { if (root.bar) root.bar.run("omarchy-launch-or-focus-tui btop") }
-        else if (b === Qt.MiddleButton) root.refreshNow()
-        else root.toggle()
-      }
-
-      // A bare Nerd Font glyph has asymmetric side bearings, so the plain text
-      // label would paint it visibly off-center; when only the placeholder icon
-      // shows, render through OpticalGlyph the way BarIconButton does.
-      OpticalGlyph {
-        id: placeholderEye
-        anchors.centerIn: parent
-        width: Style.bar.iconCanvas
-        height: Style.bar.iconCanvas
-        text: Model.PLACEHOLDER_ICON
-        fontFamily: placeholderButton.fontFamily
-        fontSize: Style.bar.iconFont
-        color: placeholderButton.foreground
-
-        // Even the ever-watchful eye blinks now and then.
-        property real blinkY: 1
-        transform: Scale {
-          origin.y: placeholderEye.height / 2
-          yScale: placeholderEye.blinkY
-        }
-
-        Timer {
-          running: placeholderEye.visible
-          repeat: true
-          interval: 6000
-          onTriggered: {
-            blinkAnim.restart()
-            interval = 5000 + Math.round(Math.random() * 9000)
-          }
-        }
-
-        SequentialAnimation {
-          id: blinkAnim
-          NumberAnimation { target: placeholderEye; property: "blinkY"; to: 0.08; duration: 70 }
-          NumberAnimation { target: placeholderEye; property: "blinkY"; to: 1; duration: 110 }
-        }
-      }
-    }
+    spacing: root.bar.vertical ? 0 : 6
 
     Repeater {
-      model: root.bar.vertical ? root.verticalLines : root.barSegs
+      model: root.placeholderOnly ? [{ key: "placeholder", text: "    ", urgent: true }] : root.bar.vertical ? root.verticalLines : root.barSegs
 
       WidgetButton {
         required property var modelData
+        id: button
         bar: root.bar
-        text: modelData.text
-        active: modelData.urgent
-        tooltipText: placeholderButton.tooltipText // ToDo: Display something meaningful per-item
+        hasVisualContent: true
+        fixedWidth: root.bar.vertical ? -1 : text.width
+        fixedHeight: root.bar.vertical ? glypth.height : -1
+        tooltipText: Service.ready
+          ? Service.host + " · up " + Model.fmtUptime(Service.uptimeSec) + " · load " + Service.load1.toFixed(2)
+            + (Service.battery ? " · bat " + Model.fmtPct(Service.battery.pct) + " " + Service.battery.status.toLowerCase() : "")
+          : "Argus"
         onPressed: (b) => {
           switch(modelData.key) {
+            case "placeholder":
+              Service.lastTab = "SETUP"
+              break 
             case "cpu":
             case "cputemp":
               Service.lastTab = "CPU"
@@ -634,8 +573,74 @@ Panel {
             default:
               Service.lastTab = "HOME"
           }
-          placeholderButton.pressed(b)
+          if (b === Qt.RightButton) { if (root.bar) root.bar.run("omarchy-launch-or-focus-tui btop") }
+          else if (b === Qt.MiddleButton) root.refreshNow()
+          else root.toggle()
         }
+
+        // A bare Nerd Font glyph has asymmetric side bearings, so the plain text
+        // label would paint it visibly off-center; when only the placeholder icon
+        // shows, render through OpticalGlyph the way BarIconButton does.
+        OpticalGlyph {
+          id: placeholderEye
+          visible: root.placeholderOnly
+          anchors.centerIn: parent
+          width: Style.bar.iconCanvas
+          height: Style.bar.iconCanvas
+          text: Model.PLACEHOLDER_ICON
+          fontFamily: button.fontFamily
+          fontSize: Style.bar.iconFont
+          color: button.foreground
+
+          // Even the ever-watchful eye blinks now and then.
+          property real blinkY: 1
+          transform: Scale {
+            origin.y: placeholderEye.height / 2
+            yScale: placeholderEye.blinkY
+          }
+
+          Timer {
+            running: placeholderEye.visible
+            repeat: true
+            interval: 6000
+            onTriggered: {
+              blinkAnim.restart()
+              interval = 5000 + Math.round(Math.random() * 9000)
+            }
+          }
+
+          SequentialAnimation {
+            id: blinkAnim
+            NumberAnimation { target: placeholderEye; property: "blinkY"; to: 0.08; duration: 70 }
+            NumberAnimation { target: placeholderEye; property: "blinkY"; to: 1; duration: 110 }
+          }
+        }
+
+        Text {
+          id: text
+          visible: !root.bar.vertical
+          textFormat: Text.PlainText
+          text: modelData.text
+          color: modelData.urgent ? root.urgent : button.foreground
+          font.family: button.fontFamily
+          font.pixelSize: button.fontSize
+          height: button.implicitHeight
+          renderType: Text.NativeRendering
+          verticalAlignment: Text.AlignVCenter
+        }
+
+        // ToDo: Not including icon(s) would save considerable vertical space
+        OpticalGlyph {
+          id: glypth
+          visible: root.bar.vertical
+          width: button.implicitWidth
+          height: Style.bar.iconSlot
+          text: modelData.text
+          fontFamily: button.fontFamily
+          fontSize: modelData.text.length > 3 ? button.fontSize * 0.85 : button.fontSize
+          color: modelData.urgent ? root.urgent : button.foreground
+        }
+
       }
     }
   }
