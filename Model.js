@@ -2024,14 +2024,6 @@ function barSegments(showKeys, data, th) {
   return segments
 }
 
-// Horizontal bar label without urgency coloring: "󰻠 12%  󰍛 61%  󰔏 56°".
-function barText(showKeys, data) {
-  var segments = barSegments(showKeys, data, null)
-  var parts = []
-  for (var i = 0; i < segments.length; i++) parts.push(segments[i].text)
-  return parts.length > 0 ? parts.join("  ") : PLACEHOLDER_ICON
-}
-
 // Vertical bar lines: { text, urgent } per line, icon line then value line
 // per metric. Rate metrics (net, io) are too wide sideways and are skipped.
 function barLines(showKeys, data, th) {
