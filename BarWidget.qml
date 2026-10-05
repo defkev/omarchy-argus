@@ -2350,7 +2350,7 @@ Panel {
 
               Text {
                 Layout.fillWidth: true
-                text: "Aggregated network traffic bar"
+                text: "Combine network up/down"
                 color: root.foreground
                 font.family: root.fontFamily
                 font.pixelSize: Style.font.body
@@ -2361,7 +2361,7 @@ Panel {
                 checked: root.setting("aggregateNet", false) === true
                 foreground: root.foreground
                 accent: Color.accent
-                onToggled: root.persistPluginSetting("aggregateNet", root.setting("aggregateNet", false) === true ? false : true)
+                onToggled: root.persistPluginSetting("aggregateNet", root.setting("aggregateNet", false) !== true)
               }
             }
 

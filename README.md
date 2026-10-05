@@ -134,6 +134,7 @@ Inline settings on the widget's entry in `shell.json`:
 | `show` | `["cpu", "ram", "cputemp"]` | Metric keys shown in the bar, in display order |
 | `intervalSec` | `2` | Poll interval in seconds, 1–60 (edited from the SETUP tab) |
 | `tempUnit` | `"C"` | Temperature display unit, `"C"` or `"F"` (edited from the SETUP tab; everything is measured and stored in °C) |
+| `aggregateNet` | `false` | Show network traffic as one combined up+down rate instead of separate download/upload rates (edited from the SETUP tab) |
 | `diskMount` | `/` | Mount point used by the bar's disk metric |
 | `alerts` | `"On"` | Master switch over every alert notification |
 | `alertCommand` | — | Shell command run on every fired alert (see below) |
