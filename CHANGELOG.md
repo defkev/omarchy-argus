@@ -15,6 +15,10 @@ follow [Semantic Versioning](https://semver.org/).
 - **An Open btop button in the panel header.** Next to the SETUP gear,
   it opens btop just like right-clicking the bar button. A new PANEL
   toggle hides it (`showBtopButton`).
+- **SHOW ON HOVER in SETUP picks what the bar button's tooltip shows.**
+  Host, uptime, any bar metric, load and battery can each be toggled;
+  the choice persists as `hover` in `shell.json`. The default matches
+  the previous tooltip, and turning everything off hides it.
 
 ### Fixed
 - **ARM machines showed no CPU name, and the Raspberry Pi no CPU

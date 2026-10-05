@@ -2022,6 +2022,66 @@ function barSegments(showKeys, data, th) {
   return segments
 }
 
+// Items the bar button's hover line can show, in display order.
+var HOVER_ITEMS = [
+  { key: "host",    label: "Host name" },
+  { key: "uptime",  label: "Uptime" },
+  { key: "cpu",     label: "CPU usage",       prefix: "cpu" },
+  { key: "cputemp", label: "CPU temperature", prefix: "cpu temp" },
+  { key: "ram",     label: "RAM usage",       prefix: "ram" },
+  { key: "gpu",     label: "GPU usage",       prefix: "gpu" },
+  { key: "gputemp", label: "GPU temperature", prefix: "gpu temp" },
+  { key: "vram",    label: "VRAM usage",      prefix: "vram" },
+  { key: "disk",    label: "Disk usage",      prefix: "disk" },
+  { key: "io",      label: "Disk I/O",        prefix: "io" },
+  { key: "net",     label: "Network traffic", prefix: "net" },
+  { key: "load",    label: "Load average",    prefix: "load" },
+  { key: "bat",     label: "Battery" }
+]
+
+var DEFAULT_HOVER = ["host", "uptime", "load", "bat"]
+
+function hoverItemByKey(key) {
+  for (var i = 0; i < HOVER_ITEMS.length; i++) if (HOVER_ITEMS[i].key === key) return HOVER_ITEMS[i]
+  return null
+}
+
+function normalizeHover(value) {
+  var list = value instanceof Array ? value : DEFAULT_HOVER
+  var result = []
+  for (var i = 0; i < list.length; i++) {
+    if (hoverItemByKey(list[i]) !== null && result.indexOf(list[i]) === -1) result.push(list[i])
+  }
+  return result
+}
+
+function hoverText(keys, data, host, uptimeSec) {
+  var list = normalizeHover(keys)
+  var parts = []
+  for (var i = 0; i < HOVER_ITEMS.length; i++) {
+    var item = HOVER_ITEMS[i]
+    if (list.indexOf(item.key) === -1) continue
+    if (item.key === "host") { if (host) parts.push(host); continue }
+    if (item.key === "uptime") { parts.push("up " + fmtUptime(uptimeSec)); continue }
+    if (item.key === "bat") {
+      if (data.battery && isFinite(data.battery.pct))
+        parts.push("bat " + fmtPct(data.battery.pct) + " " + String(data.battery.status || "").toLowerCase())
+      continue
+    }
+    var value = metricValue(item.key, data)
+    if (value !== "") parts.push(item.prefix + " " + value)
+  }
+  return parts.join(" · ")
+}
+
+function toggleHover(current, key) {
+  var list = normalizeHover(current)
+  var index = list.indexOf(key)
+  if (index >= 0) list.splice(index, 1)
+  else if (hoverItemByKey(key) !== null) list.push(key)
+  return list
+}
+
 // Horizontal bar label without urgency coloring: "󰻠 12%  󰍛 61%  󰔏 56°".
 function barText(showKeys, data) {
   var segments = barSegments(showKeys, data, null)
@@ -2055,6 +2115,11 @@ if (typeof module !== "undefined") {
   module.exports = {
     METRICS: METRICS,
     DEFAULT_SHOW: DEFAULT_SHOW,
+    HOVER_ITEMS: HOVER_ITEMS,
+    DEFAULT_HOVER: DEFAULT_HOVER,
+    normalizeHover: normalizeHover,
+    hoverText: hoverText,
+    toggleHover: toggleHover,
     DEFAULT_THRESHOLDS: DEFAULT_THRESHOLDS,
     HISTORY_LEN: HISTORY_LEN,
     normalizeShow: normalizeShow,

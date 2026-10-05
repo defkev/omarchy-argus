@@ -138,6 +138,7 @@ Inline settings on the widget's entry in `shell.json`:
 | `showSetupButton` | `true` | Show the SETUP button in the panel header |
 | `showBtopButton` | `true` | Show the Open btop button in the panel header |
 | `diskMount` | `/` | Mount point used by the bar's disk metric |
+| `hover` | `["host", "uptime", "load", "bat"]` | Items shown when hovering the bar button |
 | `alerts` | `"On"` | Master switch over every alert notification |
 | `alertCommand` | — | Shell command run on every fired alert (see below) |
 | `alertsOn` | `[]` | Alert keys the user toggled on (edited from the ALERTS tab) |

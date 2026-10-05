@@ -507,6 +507,20 @@ assert.deepStrictEqual(Model.moveShow(["cpu", "ram", "disk"], "disk", -1), ["cpu
 assert.deepStrictEqual(Model.moveShow(["cpu", "ram"], "cpu", -1), ["cpu", "ram"], "clamped at top")
 assert.deepStrictEqual(Model.moveShow(["cpu", "ram"], "ram", 1), ["cpu", "ram"], "clamped at bottom")
 
+// Hover line: same list mechanics, rendered in HOVER_ITEMS order.
+assert.deepStrictEqual(Model.normalizeHover(null), Model.DEFAULT_HOVER)
+assert.deepStrictEqual(Model.normalizeHover(["load", "host", "junk", "host"]), ["load", "host"])
+assert.deepStrictEqual(Model.toggleHover(["host"], "cpu"), ["host", "cpu"])
+assert.deepStrictEqual(Model.toggleHover(["host", "cpu"], "host"), ["cpu"])
+assert.deepStrictEqual(Model.toggleHover(["host"], "nonsense"), ["host"], "unknown keys don't toggle on")
+const hoverData = Object.assign({}, barData, { load1: 1.5, battery: { pct: 76, status: "Discharging" } })
+assert.strictEqual(Model.hoverText(null, hoverData, "box", 3700), "box · up 1h 1m · load 1.50 · bat 76% discharging",
+  "default matches the pre-setting tooltip")
+assert.strictEqual(Model.hoverText(["load", "host"], hoverData, "box", 0), "box · load 1.50", "display order is fixed")
+assert.strictEqual(Model.hoverText(["host", "bat"], Object.assign({}, hoverData, { battery: null }), "box", 0), "box",
+  "absent battery is skipped")
+assert.strictEqual(Model.hoverText([], hoverData, "box", 0), "", "nothing selected: no tooltip")
+
 // PSI parsing (avg10 of each resource).
 const psi = Model.parsePsi([
   "cpu some avg10=1.50 avg60=0.31 avg300=0.41 total=1",
