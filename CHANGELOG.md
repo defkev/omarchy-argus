@@ -6,6 +6,28 @@ follow [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+- **Clicking a bar metric opens its tab.** Each metric in the bar is its
+  own button: clicking RAM opens MEM, a temperature or load opens CPU,
+  and so on, ahead of the remembered or urgent tab. With the panel open,
+  clicking a different metric switches tabs instead of closing it. The
+  placeholder eye opens SETUP. Works on vertical bars too.
+- **Combined network rate.** A new SETUP toggle, *Combine network
+  up/down* (`aggregateNet`), shows the bar's net metric as one 󰹹 total
+  instead of separate download and upload rates, to save bar space.
+- **A SETUP button in the panel header.** A gear next to refresh opens
+  SETUP from any tab (and back to HOME). Two new PANEL toggles hide the
+  button (`showSetupButton`) or the SETUP tab in the strip
+  (`showSetupTab`); the tab is always shown while the button is hidden,
+  so settings can never become unreachable.
+- **An Open btop button in the panel header.** Next to the SETUP gear,
+  it opens btop just like right-clicking the bar button. A new PANEL
+  toggle hides it (`showBtopButton`).
+- **SHOW ON HOVER in SETUP picks what the bar button's tooltip shows.**
+  Host, uptime, any bar metric, load and battery can each be toggled;
+  the choice persists as `hover` in `shell.json`. The default matches
+  the previous tooltip, and turning everything off hides it.
+
 ### Fixed
 - **ARM machines showed no CPU name, and the Raspberry Pi no CPU
   temperature.** ARM `/proc/cpuinfo` has no `model name` line, so the
