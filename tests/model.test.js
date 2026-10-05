@@ -115,6 +115,16 @@ assert.ok(barText.includes("61%"), "bar shows ram")
 assert.ok(barText.includes("1.86"), "bar shows load")
 assert.ok(Model.metricValue("io", barData).includes("R1.0M"), "io metric renders rates")
 
+// Net: split down/up by default; aggregateNet folds them into one rate.
+const netSplit = Model.metricValue("net", barData)
+assert.ok(netSplit.includes("\u{f0045}") && netSplit.includes("\u{f005d}"), "net shows both directions by default")
+assert.ok(netSplit.includes("1.2M") && netSplit.includes("4.2K"), "net shows each rate")
+const aggData = Object.assign({}, barData, { netAggregate: true })
+assert.strictEqual(Model.metricValue("net", aggData), "\u{f0e79}\u00a01.2M")
+assert.strictEqual(Model.metricValue("net", aggData, true), "\u{f0e79}\u00a01.2M")
+assert.strictEqual(Model.metricValue("net", Object.assign({}, aggData, { netDown: 0, netUp: 0 }), true),
+  "\u{f0e79}\u00a00\u00a0\u00a0\u00a0", "aggregate net pads to 4")
+
 // NVIDIA parsing (fixture-based: nvidia-smi csv,noheader,nounits output,
 // now including power.draw).
 const nv = Model.parseNvidia([

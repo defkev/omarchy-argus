@@ -134,6 +134,7 @@ Inline settings on the widget's entry in `shell.json`:
 | `show` | `["cpu", "ram", "cputemp"]` | Metric keys shown in the bar, in display order |
 | `intervalSec` | `2` | Poll interval in seconds, 1–60 (edited from the SETUP tab) |
 | `tempUnit` | `"C"` | Temperature display unit, `"C"` or `"F"` (edited from the SETUP tab; everything is measured and stored in °C) |
+| `aggregateNet` | `false` | Show network traffic as one combined up+down rate instead of separate download/upload rates (edited from the SETUP tab) |
 | `showSetupTab` | `true` | Show SETUP in the tab strip (always shown when the SETUP button is hidden) |
 | `showSetupButton` | `true` | Show the SETUP button in the panel header |
 | `showBtopButton` | `true` | Show the Open btop button in the panel header |

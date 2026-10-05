@@ -2426,6 +2426,27 @@ Panel {
 
               Text {
                 Layout.fillWidth: true
+                text: "Combine network up/down"
+                color: root.foreground
+                font.family: root.fontFamily
+                font.pixelSize: Style.font.body
+                elide: Text.ElideRight
+              }
+
+              ToggleSwitch {
+                checked: root.setting("aggregateNet", false) === true
+                foreground: root.foreground
+                accent: Color.accent
+                onToggled: root.persistPluginSetting("aggregateNet", root.setting("aggregateNet", false) !== true)
+              }
+            }
+
+            RowLayout {
+              width: parent.width
+              spacing: Style.space(8)
+
+              Text {
+                Layout.fillWidth: true
                 text: root.setupTabForced ? "Show SETUP tab (on while button hidden)" : "Show SETUP tab"
                 color: root.setupTabForced ? root.dim : root.foreground
                 font.family: root.fontFamily

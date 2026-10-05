@@ -7,6 +7,9 @@ follow [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+- **Combined network rate.** A new SETUP toggle, *Combine network
+  up/down* (`aggregateNet`), shows the bar's net metric as one 󰹹 total
+  instead of separate download and upload rates, to save bar space.
 - **A SETUP button in the panel header.** A gear next to refresh opens
   SETUP from any tab (and back to HOME). Two new PANEL toggles hide the
   button (`showSetupButton`) or the SETUP tab in the strip
